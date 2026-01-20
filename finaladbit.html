@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADBIT | MUSIC PRODUCER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Fonts: Syncopate (Titles), Space Mono (Tech text) -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg: #050505;
+        --card-bg: #0a0a0a;
+        --text-main: #e0e0e0;
+        --text-dim: #666666;
+        --accent: #ff4d00; /* Groshev Orange */
+        --border: rgba(255, 255, 255, 0.1);
+        --font-display: 'Anton', sans-serif;
+        --font-tech: 'Space Mono', monospace;
+        --easing: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html { scroll-behavior: smooth; }
+
+    body {
+        background-color: var(--bg);
+        color: var(--text-main);
+        font-family: var(--font-tech);
+        overflow-x: hidden;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; cursor: pointer; transition: 0.3s; }
+    ul { list-style: none; }
+
+    /* --- FRACTAL BACKGROUND & INTERACTIVITY --- */
+    .fractal-canvas {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -2;
+        overflow: hidden;
+        background: #050505;
+    }
+
+    /* Interactive Canvas Layer */
+    #particle-canvas {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0.6;
+    }
+
+    .glass-distortion {
+        position: absolute;
+        inset: 0;
+        backdrop-filter: url(#fractal-filter);
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.3;
+        transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #222; }
+    .orb-2 { bottom: -10%; right: -10%; width: 40vw; height: 40vw; background: #1a1a1a; }
+    
+    /* --- GRID OVERLAY --- */
+    .grid-overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: 
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 200px 200px;
+        z-index: -1;
+    }
+
+    /* --- NAVIGATION --- */
+    nav {
+        position: fixed;
+        top: 0; width: 100%;
+        padding: 25px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+        background: rgba(5,5,5,0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .brand { font-family: var(--font-display); font-weight: 700; color: #fff; letter-spacing: -1px; font-size: 24px; position: relative; z-index: 1002; }
+    .orange-dot { display: inline-block; width: 10px; height: 10px; background: var(--accent); border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px var(--accent); }
+
+    /* --- HAMBURGER MENU --- */
+    .hamburger-btn {
+        width: 40px;
+        height: 20px;
+        position: relative;
+        cursor: pointer;
+        z-index: 1002;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .bar {
+        width: 100%;
+        height: 2px;
+        background-color: #fff;
+        transition: 0.3s ease;
+    }
+    
+    /* Overlay Menu */
+    .overlay-menu {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100vh;
+        background: #050505;
+        z-index: 1001;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.4s ease;
+    }
+
+    .overlay-menu.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    /* Close Button (X) inside Overlay */
+    .close-menu-btn {
+        position: absolute;
+        top: 30px;
+        right: 40px;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-family: var(--font-display);
+        font-size: 40px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .close-menu-btn:hover { color: var(--accent); transform: rotate(90deg); }
+
+    .overlay-links {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .overlay-links a {
+        font-family: var(--font-display);
+        font-size: 40px;
+        color: #fff;
+        text-transform: uppercase;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: 0.3s ease;
+    }
+    
+    /* Hover turns Orange */
+    .overlay-links a:hover { color: var(--accent); letter-spacing: 2px; }
+
+    /* Link Animation Delay in Menu */
+    .overlay-menu.active .overlay-links a {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 0.1s;
+    }
+    .overlay-menu.active .overlay-links a:nth-child(2) { transition-delay: 0.15s; }
+    .overlay-menu.active .overlay-links a:nth-child(3) { transition-delay: 0.2s; }
+    .overlay-menu.active .overlay-links a:nth-child(4) { transition-delay: 0.25s; }
+    .overlay-menu.active .overlay-links a:nth-child(5) { transition-delay: 0.3s; }
+    .overlay-menu.active .overlay-links a:nth-child(6) { transition-delay: 0.35s; }
+    .overlay-menu.active .overlay-links a:nth-child(7) { transition-delay: 0.4s; }
+    .overlay-menu.active .overlay-links a:nth-child(8) { transition-delay: 0.45s; }
+    .overlay-menu.active .overlay-links a:nth-child(9) { transition-delay: 0.5s; }
+
+    /* --- MARQUEE (SCROLLING TEXT) --- */
+    .marquee-container {
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        border-bottom: 2px solid var(--border);
+        background: white;
+        color: #000000;;
+        padding: 10px 0;
+    }
+    .marquee-content {
+        display: inline-block;
+        animation: scrollText 20s linear infinite;
+        font-family: var(--font-tech);
+        font-size: 24px;
+        text-transform: uppercase;
+    }
+    @keyframes scrollText {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    /* --- LAYOUT & ANIMATIONS --- */
+    section {
+        min-height: 100vh;
+        padding: 140px 40px 60px;
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        
+        /* Animation Base State */
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+
+    /* Active Animation Class */
+    section.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .section-header {
+        margin-bottom: 60px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    h2 { font-family: var(--font-display); font-size: 3rem; text-transform: uppercase; line-height: 0.9; color: #fff; }
+    .sec-num { color: var(--accent); font-family: var(--font-tech); font-size: 14px; margin-bottom: 10px; display: block;}
+
+    /* --- HERO --- */
+    .hero { justify-content: center; }
+    
+    .hero-main-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hero h1 {
+        font-family: var(--font-display);
+        font-size: 12vw;
+        line-height: 0.8;
+        color: #fff;
+        margin-left: -0.5vw;
+        text-transform: uppercase;
+        mix-blend-mode: exclusion;
+    }
+
+    .hero-btn {
+        margin-top: 20px;
+        padding: 12px 30px;
+        background: transparent;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        font-family: var(--font-tech);
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+        font-size: 12px;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+    
+    .hero-btn:hover {
+        background: var(--accent);
+        color: #000;
+        box-shadow: 0 0 20px var(--accent);
+    }
+
+    .hero-sub {
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-top: 1px solid var(--border);
+        padding-top: 20px;
+        color: var(--text-dim);
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+    .hero-sub strong { color: #fff; display: block; margin-bottom: 5px; }
+
+    /* --- PROFILE --- */
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 40px; }
+    .profile-text p { font-size: 16px; margin-bottom: 20px; color: #ccc; }
+
+    /* --- CLIENTS (MARQUEE) --- */
+    .clients-section {
+        min-height: auto;
+        padding: 60px 0 100px;
+        overflow: hidden;
+    }
+    
+    .clients-scroll-container {
+        display: flex;
+        gap: 30px;
+        width: max-content;
+        /* Scrolls to -50% to create perfect loop with duplicated content */
+        animation: scrollReviews 30s linear infinite;
+    }
+    .clients-scroll-container:hover { animation-play-state: paused; }
+    
+    @keyframes scrollReviews {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    
+    .client-card {
+        min-width: 250px;
+        background: #0e0e0e;
+        border: 1px solid var(--border);
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        transition: 0.3s;
+        height: 120px;
+    }
+    .client-card:hover { border-color: var(--accent); background: #141414; }
+    
+    .c-name { font-family: var(--font-display); font-size: 20px; color: #fff; line-height: 1; text-transform: uppercase; }
+    .c-type { font-size: 10px; color: var(--accent); text-transform: uppercase; margin-top: 8px; letter-spacing: 1px; }
+
+    /* --- ALIASES + CAROUSEL --- */
+    .alias-block {
+        display: grid;
+        grid-template-columns: 1fr 2fr; 
+        gap: 40px;
+        margin-bottom: 80px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 80px;
+    }
+    .alias-block:last-child { border-bottom: none; margin-bottom: 0; }
+
+    .alias-info-card {
+        border: 1px solid var(--border);
+        background: var(--card-bg);
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 350px;
+        position: relative;
+        transition: 0.4s var(--easing);
+    }
+    .alias-info-card:hover { border-color: var(--accent); transform: translateY(-5px); }
+    .alias-header { display: flex; align-items: flex-start; gap: 10px; }
+    .alias-dot { width: 12px; height: 12px; background: var(--text-dim); border-radius: 50%; transition: 0.3s; margin-top: 6px; }
+    .alias-info-card:hover .alias-dot { background: var(--accent); box-shadow: 0 0 15px var(--accent); }
+    .alias-name { font-family: var(--font-display); font-size: 24px; line-height: 1; margin-bottom: 5px; }
+    .alias-genre { font-size: 11px; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; }
+    .stat-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; color: #888; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; }
+    .stat-row span:last-child { color: #fff; text-align: right; }
+
+    .carousel-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .carousel-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .carousel-label {
+        font-family: var(--font-tech);
+        font-size: 10px; text-transform: uppercase; letter-spacing: 2px; 
+        color: var(--accent);
+    }
+
+    .carousel-arrows {
+        display: flex;
+        gap: 10px;
+    }
+
+    .nav-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: #fff;
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex; 
+        align-items: center; justify-content: center;
+        transition: 0.3s;
+    }
+
+    .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .track-carousel {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 20px; 
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+    }
+    .track-carousel::-webkit-scrollbar { display: none; }
+
+    .track-card {
+        min-width: 280px;
+        background: #0e0e0e;
+        border: 1px solid var(--border);
+        padding: 25px;
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: 0.3s;
+        height: 100%;
+    }
+    .track-card:hover { border-color: var(--accent); background: #141414; }
+    .t-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 5px; line-height: 1.2; }
+    .t-artist { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 20px; }
+    .t-link { 
+        margin-top: auto; font-size: 10px; text-transform: uppercase; 
+        border: 1px solid var(--border); padding: 8px 16px; 
+        display: inline-block; width: fit-content; border-radius: 50px;
+        transition: 0.3s;
+    }
+    .track-card:hover .t-link { background: var(--accent); color: #000; border-color: var(--accent); }
+
+
+    /* --- SHARED CARD STYLE --- */
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .hover-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        transition: 0.3s ease;
+        position: relative;
+    }
+
+    .hover-card:hover { 
+        border-color: var(--accent); 
+        box-shadow: inset 0 0 20px rgba(255, 77, 0, 0.05);
+    }
+
+    .card-title { font-family: var(--font-display); font-size: 18px; margin-bottom: 15px; color: #fff; }
+    .card-desc { color: var(--text-dim); font-size: 13px; line-height: 1.6; }
+    
+    .svc-list li { position: relative; padding-left: 15px; margin-bottom: 8px; font-size: 12px; color: #aaa; }
+    .svc-list li::before { content: '+'; position: absolute; left: 0; color: var(--accent); }
+    
+    .svc-price { 
+        font-size: 18px; color: #fff; font-weight: 700; border-top: 1px solid var(--border); 
+        padding-top: 20px; margin-top: auto; display: flex; justify-content: space-between; 
+    }
+    .svc-price span { color: var(--accent) !important; font-size: 10px; text-transform: uppercase; font-weight: 400; }
+    
+    .plugin-list { column-count: 2; column-gap: 40px; margin-top: 20px; }
+    .plugin-list li { 
+        font-size: 11px; color: #888; margin-bottom: 10px; list-style: none; 
+        border-bottom: 1px solid #111; padding-bottom: 5px; 
+    }
+    .hover-card:hover .plugin-list li { color: #ccc; border-bottom-color: #222; }
+
+    /* --- PROCESS TIMELINE (How It Works) --- */
+    .process-section {
+        margin: 60px 0;
+    }
+    .process-title {
+        font-family: var(--font-display);
+        color: #fff;
+        margin-bottom: 30px;
+        font-size: 20px;
+        text-transform: uppercase;
+    }
+    .process-steps {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 20px;
+    }
+    .p-step {
+        border: 1px solid var(--border);
+        background: #080808;
+        padding: 20px;
+        position: relative;
+    }
+    .p-step:hover { border-color: var(--accent); }
+    .p-num {
+        font-size: 40px; color: rgba(255,255,255,0.05);
+        position: absolute; top: 0; right: 10px;
+        font-weight: 700; font-family: var(--font-display);
+    }
+    .p-name { color: var(--accent); font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 12px;}
+    .p-detail { color: #888; font-size: 11px; line-height: 1.4; }
+    
+    /* Desktop Arrow */
+    .p-step:not(:last-child)::after {
+        content: '→';
+        position: absolute;
+        right: -15px; top: 50%; transform: translateY(-50%);
+        color: var(--border);
+    }
+
+    /* --- MASTERING PLAYER --- */
+    .mastering-container {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 40px;
+        align-items: center;
+        background: #080808;
+        border: 1px solid var(--border);
+        padding: 40px;
+    }
+    .mastering-desc h3 { font-family: var(--font-display); font-size: 24px; color: #fff; margin-bottom: 10px; }
+    .mastering-desc p { color: #888; margin-bottom: 20px; }
+    
+    /* Song Selector */
+    .song-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .song-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: #666;
+        padding: 8px 15px;
+        font-family: var(--font-tech);
+        font-size: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .song-btn:hover { border-color: var(--accent); }
+    .song-btn.active-song { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    .ab-player {
+        background: #000;
+        border: 1px solid #222;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+    }
+    .waveform-mock {
+        height: 60px;
+        background: 
+            linear-gradient(90deg, #333 1px, transparent 1px);
+        background-size: 5px 100%;
+        margin-bottom: 20px;
+        opacity: 0.5;
+        position: relative;
+        overflow: hidden;
+    }
+    .play-progress {
+        position: absolute; left: 0; top: 0; bottom: 0;
+        width: 0%; background: var(--accent); opacity: 0.3;
+        transition: width 0.1s linear;
+    }
+    .player-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .play-btn {
+        width: 50px; height: 50px;
+        border-radius: 50%; border: 1px solid var(--accent);
+        background: transparent; color: var(--accent);
+        font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .play-btn:hover { background: var(--accent); color: #000; }
+    
+    .ab-toggle-group {
+        display: flex;
+        background: #111;
+        border-radius: 50px;
+        padding: 4px;
+        border: 1px solid #333;
+    }
+    .ab-btn {
+        background: transparent; border: none;
+        color: #666; padding: 8px 20px; font-family: var(--font-tech);
+        font-size: 11px; cursor: pointer; border-radius: 40px;
+        transition: 0.3s;
+    }
+    .ab-btn.active { background: #333; color: #fff; }
+    .ab-btn.active-mastered { background: var(--accent); color: #000; }
+
+    /* Volume Slider */
+    .volume-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #666;
+        font-size: 10px;
+    }
+    .volume-slider {
+        width: 100px;
+        height: 4px;
+        background: #333;
+        border-radius: 2px;
+        outline: none;
+    }
+    .volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px; height: 12px;
+        background: var(--accent);
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    /* --- FAQ --- */
+    .faq-container { max-width: 800px; margin: 0 auto; width: 100%; }
+    details {
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 10px;
+        transition: 0.3s;
+    }
+    details[open] { border-bottom: 1px solid var(--accent); }
+    summary {
+        padding: 20px 0;
+        cursor: pointer;
+        color: #fff;
+        font-size: 14px;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; font-size: 18px; color: var(--accent); }
+    details[open] summary::after { content: '-'; }
+    
+    .faq-answer {
+        padding-bottom: 20px;
+        color: #999;
+        font-size: 13px;
+    }
+
+    /* --- CONTACT --- */
+    .contact-hero {
+        min-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        border-top: 1px solid var(--border);
+    }
+
+    .contact-title { font-family: var(--font-display); font-size: 8vw; line-height: 0.9; text-transform: uppercase; color: #fff; margin-bottom: 60px; }
+    .contact-cta { font-family: var(--font-tech); font-size: 18px; color: #fff; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid var(--accent); padding-bottom: 5px; transition: 0.3s; }
+    .contact-cta:hover { background: var(--accent); color: #000; padding: 5px 10px; border-bottom: none; }
+    .contact-socials { margin-top: 100px; display: flex; gap: 60px; }
+    .contact-socials a { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+    .contact-socials a:hover { color: var(--accent); }
+
+    /* --- MOBILE --- */
+    @media (max-width: 900px) {
+        .alias-block { grid-template-columns: 1fr; gap: 20px; }
+        .hero h1 { font-size: 16vw; }
+        .hero-sub { grid-template-columns: 1fr 1fr; gap: 20px; }
+        .contact-title { font-size: 14vw; }
+        .contact-socials { gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .grid-container { grid-template-columns: 1fr; }
+        .plugin-list { column-count: 1; }
+        .process-steps { grid-template-columns: 1fr; gap: 40px; }
+        
+        /* MOBILE ARROW CHANGE (DOWN) */
+        .p-step:not(:last-child)::after { 
+            content: '↓'; /* Down Arrow */
+            right: 50%; top: auto; bottom: -30px; 
+            transform: translateX(50%);
+        }
+        
+        .mastering-container { grid-template-columns: 1fr; }
+        .overlay-links a { font-size: 24px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- SVG Filter -->
+<svg style="display: none;">
+    <defs>
+        <filter id="fractal-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.005" numOctaves="2" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" />
+        </filter>
+    </defs>
+</svg>
+
+<div class="fractal-canvas">
+    <!-- Interactive Canvas -->
+    <canvas id="particle-canvas"></canvas>
+    <div class="orb orb-1" id="orb1"></div>
+    <div class="orb orb-2" id="orb2"></div>
+    <div class="glass-distortion"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<!-- NAVIGATION WITH HAMBURGER -->
+<nav>
+    <a href="#" class="brand"><span class="orange-dot"></span>ADBIT</a>
+    
+    <!-- Hamburger Button -->
+    <div class="hamburger-btn" onclick="toggleMenu()">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </div>
+</nav>
+
+<!-- Full Screen Overlay Menu -->
+<div class="overlay-menu" id="overlayMenu">
+    <!-- NEW CLOSE BUTTON -->
+    <button class="close-menu-btn" onclick="toggleMenu()">X</button>
+
+    <div class="overlay-links">
+        <a href="#hero" onclick="toggleMenu()">Home</a>
+        <a href="#profile" onclick="toggleMenu()">Profile</a>
+        <a href="#clients" onclick="toggleMenu()">Clients</a>
+        <a href="#aliases" onclick="toggleMenu()">Works</a>
+        <a href="#achievements" onclick="toggleMenu()">Achievements</a>
+        <a href="#services" onclick="toggleMenu()">Services</a>
+        <a href="#mastering" onclick="toggleMenu()">Mastering</a>
+        <a href="#gear" onclick="toggleMenu()">Gear</a>
+        <a href="#faq" onclick="toggleMenu()">FAQ</a>
+        <a href="#contact" onclick="toggleMenu()">Contact</a>
+    </div>
+</div>
+
+<section id="hero" class="hero">
+    <div class="hero-main-content">
+        <div style="color: var(--accent); font-family: var(--font-tech); margin-bottom: 20px; letter-spacing: 2px;">EST. 2012 // BRUNEI</div>
+        <h1>ADBIT</h1>
+        <a href="#contact" class="hero-btn">Request a Quote</a>
+    </div>
+    <div class="hero-sub">
+        <div>
+            <strong>Roles</strong>
+            Mixing / Mastering<br>Music Producer
+        </div>
+        <div>
+            <strong>DAW</strong>
+            FL Studio 
+        </div>
+        <div>
+            <strong>Genres</strong>
+            Pop / EDM / Scoring<br>Sound Design
+        </div>
+        <div>
+            <strong>Status</strong>
+            Open for 2026<br>Commissions
+        </div>
+    </div>
+</section>
+
+    <div class="marquee-container">
+        <div class="marquee-content">
+            MUSIC PRODUCER /// MIXING /// MASTERING /// SOUND DESIGNER /// GAME SCORING /// ADBIT /// OPEN FOR COMMISSIONS ///
+            MUSIC PRODUCER /// MIXING /// MASTERING /// SOUND DESIGNER /// GAME SCORING /// ADBIT /// OPEN FOR COMMISSIONS ///
+        </div>
+    </div>
+
+<section id="profile">
+    <div class="section-header">
+        <div>
+            <span class="sec-num">01 // IDENTITY</span>
+            <h2>Profile</h2>
+        </div>
+    </div>
+    <div class="profile-grid">
+        <div style="border-right: 1px solid var(--border); padding-right: 40px;">
+            <h3 style="font-size: 24px; text-transform: uppercase; color: #fff; margin-bottom: 20px;">
+                Since 2012.
+            </h3>
+            <p style="color: var(--accent);">Based in Brunei Darussalam.</p>
+        </div>
+        <div class="profile-text">
+            <p>
+                As a dedicated music producer with 13 years of experience, I have built a reputation in Brunei’s local music scene since 2012 while expanding internationally—specifically Malaysia and Singapore.
+            </p>
+            <p>
+                 My work spans electronic genres like Progressive House, Electro House, Future Bass, and experimental fusion. I bridge the gap between technical audio engineering and creative composition.
+            </p>
+            <p>
+                Currently focusing on sound design, remixes, and original releases that emphasize uniqueness and cultural influence.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- UPDATED: CLIENTS SECTION
+<section id="clients" class="clients-section">
+    <div class="section-header" style="padding-left: 40px;">
+        <div>
+            <span class="sec-num">01.5 // PORTFOLIO</span>
+            <h2>Previous Clients</h2>
+        </div>
+    </div>
+    <div class="clients-scroll-container">
+        <div class="client-card">
+            <div class="c-name">Waffuro</div>
+            <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">Aienki</div>
+            <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">EMRYS</div>
+            <div class="c-type">Twitch Streamer</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">Kristal FM</div>
+            <div class="c-type">Radio</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">6th System</div>
+            <div class="c-type">Gaming</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">SWANZ</div>
+            <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">W0DANNY</div>
+            <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">birthdayevil</div>
+            <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">Progresif Media</div>
+            <div class="c-type">Media</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">Kristal FM</div>
+            <div class="c-type">Radio</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">KYSB</div>
+            <div class="c-type">Radio</div>
+        </div>
+        <div class="client-card">
+            <div class="c-name">Kaeljune</div>
+            <div class="c-type">Artist</div>
+        </div>
+    </div>
+</section> -->
+
+<!-- ALIASES & RELEASES -->
+<section id="aliases">
+    <div class="section-header">
+        <div>
+            <span class="sec-num">02 // CATALOG</span>
+            <h2>Works</h2>
+        </div>
+    </div>
+
+    <!-- TWONATURE BLOCK -->
+    <div class="alias-block">
+        <div class="alias-info-card">
+            <div class="alias-header">
+                <div class="alias-dot"></div>
+                <div>
+                    <div class="alias-name">TWONATURE</div>
+                    <div class="alias-genre">Pop / EDM</div>
+                </div>
+            </div>
+            <div style="margin-top: 40px;">
+                <div class="stat-row"><span>Active</span> <span>2020 - Present</span></div>
+                <div class="stat-row"><span>Releases</span> <span>22</span></div>
+                <div style="margin-top: 30px;">
+                    <a href="https://open.spotify.com/artist/6bKrtvblVrHG1FcHtcVgWv" target="_blank" class="contact-cta" style="font-size: 12px;">Spotify Profile</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="carousel-wrapper">
+            <div class="carousel-controls">
+                <div class="carousel-label">Releases</div>
+                <div class="carousel-arrows">
+                    <button class="nav-btn prev" onclick="scrollCarousel(this, -300)">&lt;</button>
+                    <button class="nav-btn next" onclick="scrollCarousel(this, 300)">&gt;</button>
+                </div>
+            </div>
+            <div class="track-carousel">
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Raya Seems So Grey</div>
+                        <div class="t-artist">TWONATURE ft. Fandi</div>
+                    </div>
+                    <a href="https://open.spotify.com/artist/6bKrtvblVrHG1FcHtcVgWv" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Majal (TWONATURE Remix)</div>
+                        <div class="t-artist">SWANZ & ASMAI x TWONATURE</div>
+                    </div>
+                    <a href="https://open.spotify.com/track/6hUlW1sZzBR4zM2smjNGgJ" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Introvert Pt.2</div>
+                        <div class="t-artist">DAVEN x TWONATURE</div>
+                    </div>
+                    <a href="https://open.spotify.com/track/3DzOlBJ6hQVn5DkjHV3cJc" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Escape (Edit)</div>
+                        <div class="t-artist">(G)I-DLE x TWONATURE</div>
+                    </div>
+                    <a href="https://soundcloud.com/twonature/gi-dle-escape-twonature-edit" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Rearview</div>
+                        <div class="t-artist">TWONATURE ft. Fruz</div>
+                    </div>
+                    <a href="https://youtu.be/AUZ3KLuQUAY" target="_blank" class="t-link">Listen</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BASS HOWLERS BLOCK -->
+    <div class="alias-block">
+        <div class="alias-info-card">
+            <div class="alias-header">
+                <div class="alias-dot"></div>
+                <div>
+                    <div class="alias-name">BASS HOWLERS</div>
+                    <div class="alias-genre">Progressive House</div>
+                </div>
+            </div>
+            <div style="margin-top: 40px;">
+                <div class="stat-row"><span>Active</span> <span>2016 - 2020</span></div>
+                <div class="stat-row"><span>Releases</span> <span>28</span></div>
+                <div style="margin-top: 30px;">
+                    <a href="https://www.youtube.com/channel/UClykIEjIsr1dF94P0UxICLg" target="_blank" class="contact-cta" style="font-size: 12px;">YouTube Channel</a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-wrapper">
+             <div class="carousel-controls">
+                <div class="carousel-label">Releases</div>
+                <div class="carousel-arrows">
+                    <button class="nav-btn prev" onclick="scrollCarousel(this, -300)">&lt;</button>
+                    <button class="nav-btn next" onclick="scrollCarousel(this, 300)">&gt;</button>
+                </div>
+            </div>
+            <div class="track-carousel">
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Suasana Hari Raya (Bass Howlers Remix)</div>
+                        <div class="t-artist">Saloma</div>
+                    </div>
+                    <a href="https://youtu.be/dxQgp5TNxQc" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">SQUAD</div>
+                        <div class="t-artist">Bass Howlers</div>
+                    </div>
+                    <a href="https://youtu.be/bJ9pmfdudEY" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Blue Sailor</div>
+                        <div class="t-artist">Bass Howlers</div>
+                    </div>
+                    <a href="https://youtu.be/HDZTfpG_-Bs" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Save My Soul</div>
+                        <div class="t-artist">Bass Howlers</div>
+                    </div>
+                    <a href="https://youtu.be/63asYc4Sl04" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">Without Me (Bass Howlers Remix)</div>
+                        <div class="t-artist">Halsey</div>
+                    </div>
+                    <a href="https://youtu.be/LplOEARO4go" target="_blank" class="t-link">Listen</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMINAN BLOCK -->
+    <div class="alias-block">
+        <div class="alias-info-card">
+            <div class="alias-header">
+                <div class="alias-dot"></div>
+                <div>
+                    <div class="alias-name">IMINAN</div>
+                    <div class="alias-genre">Experimental</div>
+                </div>
+            </div>
+            <div style="margin-top: 40px;">
+                <div class="stat-row"><span>Active</span> <span>2020 - Present</span></div>
+                <div class="stat-row"><span>Releases</span> <span>16</span></div>
+                <div style="margin-top: 30px;">
+                    <a href="https://www.instagram.com/weareiminan/" target="_blank" class="contact-cta" style="font-size: 12px;">Instagram</a>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-wrapper">
+             <div class="carousel-controls">
+                <div class="carousel-label">Releases</div>
+                <div class="carousel-arrows">
+                    <button class="nav-btn prev" onclick="scrollCarousel(this, -300)">&lt;</button>
+                    <button class="nav-btn next" onclick="scrollCarousel(this, 300)">&gt;</button>
+                </div>
+            </div>
+            <div class="track-carousel">
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">BASSLINE</div>
+                        <div class="t-artist">IMINAN x TWONATURE</div>
+                    </div>
+                    <a href="https://open.spotify.com/album/7ewodD1DDJTrUHXcZZJn5K?si=EVm_F7hXSYKl-ghP8EbGAg" target="_blank" class="t-link">Listen</a>
+                </div>
+                <div class="track-card">
+                    <div>
+                        <div class="t-title">DAWN OF THE END</div>
+                        <div class="t-artist">IMINAN</div>
+                    </div>
+                    <a href="https://open.spotify.com/album/08SMaxyrlnm86Oar5Yoeb4?si=cKq_vyOeQBWPs5Svq9_imA" target="_blank" class="t-link">Listen</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ACHIEVEMENTS SECTION -->
+<section id="achievements">
+    <div class="section-header">
+        <div>
+            <span class="sec-num">03 // MILESTONES</span>
+            <h2>Achievements</h2>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div class="hover-card">
+            <div class="card-title">WARNER MUSIC GROUP</div>
+            <div class="card-desc">
+                Released the first EDM album in Brunei with "The Brotherhood" under Warner Music Group’s Level Music.
+            </div>
+        </div>
+
+        <div class="hover-card">
+            <div class="card-title">PROGRESIF MEDIA</div>
+            <div class="card-desc">
+                Featured on Local EDM Album Vol.6 with Shasha for the song "Ascend (Wait For You)".
+            </div>
+        </div>
+
+        <div class="hover-card">
+            <div class="card-title">VIRAL REMIXES</div>
+            <div class="card-desc">
+                Remixed SWANZ & ASMAI song "MAJAL", contributing to 15k listeners for the local electronic movement in Brune and also Suasana Hari Raya which garnered 400k+ views.
+            </div>
+        </div>
+
+        <div class="hover-card">
+            <div class="card-title">ROYAL BRUNEI AIRLINES</div>
+            <div class="card-desc">
+                Featured in Royal Brunei Airlines partnership with KYSB show, FLIGHT CLVB.
+            </div>
+        </div>
+
+        <div class="hover-card">
+            <div class="card-title">KRISTAL FM</div>
+            <div class="card-desc">
+                Performed a 3 sessions mixshow with KYSB Radio Show under KristalFM with the alias Bass Howlers and also TWONATURE.
+            </div>
+        </div>
+
+        <div class="hover-card">
+            <div class="card-title">MEDIA FEATURES</div>
+            <div class="card-desc">
+                Got featured on Electronic Sound Magazine Malaysia and also on a few songs played on the Malaysian radio.
+            </div>
+        </div>
+
+        <div class="hover-card">
+            <div class="card-title">COLLABORATIONS</div>
+            <div class="card-desc">
+                Worked with prominent Brunei EDM producers including A12Sounds, Kaeljune, Qwamii, and BananaNoodles with some local artist such as IKHLAS.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICES SECTION -->
+<section id="services">
+    <div class="section-header">
+        <div>
+            <span class="sec-num">04 // STUDIO</span>
+            <h2>Services</h2>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS SUB-SECTION -->
+    <div class="process-section">
+        <div class="process-title">How It Works</div>
+        <div class="process-steps">
+            <div class="p-step">
+                <span class="p-num">01</span>
+                <div class="p-name">Send Demo & Brief</div>
+                <div class="p-detail">Submit your stems and project details via the form.</div>
+            </div>
+            <div class="p-step">
+                <span class="p-num">02</span>
+                <div class="p-name">Production Phase</div>
+                <div class="p-detail">Creative work, mixing, and arrangement begins.</div>
+            </div>
+            <div class="p-step">
+                <span class="p-num">03</span>
+                <div class="p-name">Revisions</div>
+                <div class="p-detail">Refining the track based on your feedback.</div>
+            </div>
+            <div class="p-step">
+                <span class="p-num">04</span>
+                <div class="p-name">Final Delivery</div>
+                <div class="p-detail">Receive high-quality WAV/MP3 masters ready for release.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        
+        <!-- Beat Production -->
+        <div class="hover-card">
+            <div class="card-title">PRODUCTION</div>
+            <div class="card-desc">
+                Pop / EDM Beat Production. Custom sound selection.
+            </div>
+            <ul class="svc-list" style="margin-top: 20px;">
+                <li>Custom Sound Design</li>
+                <li>Full Arrangement</li>
+                <li>Non-exclusive rights</li>
+            </ul>
+            <div class="svc-price">
+                BND 140 <span>Per Song</span>
+            </div>
+        </div>
+
+        <!-- Mixing -->
+        <div class="hover-card">
+            <div class="card-title">MIXING</div>
+            <div class="card-desc">
+                Professional balancing for depth and clarity.
+            </div>
+            <ul class="svc-list" style="margin-top: 20px;">
+                <li>Vocal clarity & balance</li>
+                <li>Radio & streaming ready</li>
+                <li>Multiple revisions included</li>
+            </ul>
+            <div class="svc-price">
+                BND 150 <span>Per Song</span>
+            </div>
+        </div>
+
+        <!-- Mastering -->
+        <div class="hover-card">
+            <div class="card-title">MASTERING</div>
+            <div class="card-desc">
+                Loudness optimization for Spotify, Apple Music & YouTube.
+            </div>
+            <ul class="svc-list" style="margin-top: 20px;">
+                <li>Tonal balance</li>
+                <li>Stereo enhancement</li>
+                <li>Final Quality Control</li>
+            </ul>
+            <div class="svc-price">
+                BND 180 <span>Per Song</span>
+            </div>
+        </div>
+
+        <!-- Mix & Master -->
+        <div class="hover-card">
+            <div class="card-title">MIX & MASTER</div>
+            <div class="card-desc">
+                Complete release-ready delivery. Optimized for all major platforms.
+            </div>
+            <ul class="svc-list" style="margin-top: 20px;">
+                <li>Professional Mixing</li>
+                <li>Professional Mastering</li>
+                <li>Multiple Revisions Included</li>
+            </ul>
+            <div class="svc-price">
+                BND 350 <span>Per Song</span>
+            </div>
+        </div>
+
+
+        <!-- Commercial -->
+        <div class="hover-card">
+            <div class="card-title">COMMERCIAL & MEDIA</div>
+            <div class="card-desc">
+                Original music for brands, ads, and visual media. Bespoke sonic branding.
+            </div>
+            <ul class="svc-list" style="margin-top: 20px;">
+                <li>Jingles (5-10s): BND 50-100</li>
+                <li>Background Music: BND 200-500</li>
+                <li>Game/Film Score: $500 - $1000 per project</li>
+            </ul>
+            <div class="svc-price">
+                BND 50 - BND 1000<span>Per Project</span>
+            </div>
+        </div>
+
+        <!-- Custom Wedding Songs -->
+        <div class="hover-card">
+            <div class="card-title">CUSTOM WEDDING SONGS</div>
+            <div class="card-desc">
+                Original composition for your happiest day.
+            </div>
+            <ul class="svc-list" style="margin-top: 20px;">
+                <li>Custom Composition Following the Clients Requirements</li>
+                <li>Full Arrangement</li>
+                <li>Multiple Revisions Included</li>
+            </ul>
+            <div class="svc-price">
+                BND 80<span>Per Song</span>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- MASTERING SHOWCASE SECTION -->
+<section id="mastering">
+    <div class="section-header">
+        <div>
+            <span class="sec-num">05 // POLISH</span>
+            <h2>Mastering</h2>
+        </div>
+    </div>
+
+    <div class="mastering-container">
+        <div class="mastering-desc">
+            <h3>Hear the Difference</h3>
+            <p>
+                Mastering is the final step in audio post-production. It balances stereo mix, unifies the sonic elements, and optimizes playback response for all systems.
+            </p>
+            
+            <!-- Song Selection Buttons -->
+            <div class="song-selector">
+                <button class="song-btn active-song" onclick="changeTrack(0)">Pop / Vocal</button>
+                <button class="song-btn" onclick="changeTrack(1)">EDM / Festival</button>
+                <button class="song-btn" onclick="changeTrack(2)">Cinematic</button>
+            </div>
+
+            <p style="color: var(--accent); font-size: 11px; margin-top: 10px;">
+                *Toggle the switch to hear the difference.
+            </p>
+        </div>
+
+        <!-- A/B PLAYER UI -->
+        <div class="ab-player">
+            <!-- Hidden Audio Elements -->
+            <!-- REPLACE 'src' ATTRIBUTES WITH YOUR ACTUAL AUDIO FILE PATHS -->
+            <audio id="audio-unmastered" src="path-to-song1-unmastered.mp3" loop></audio>
+            <audio id="audio-mastered" src="path-to-song1-mastered.mp3" loop muted></audio>
+            
+            <div class="waveform-mock">
+                <div class="play-progress" id="progress-bar"></div>
+            </div>
+
+            <div class="player-controls">
+                <button class="play-btn" id="play-toggle">▶</button>
+                
+                <div class="ab-toggle-group">
+                    <button class="ab-btn active" id="btn-before" onclick="toggleSource('before')">BEFORE</button>
+                    <button class="ab-btn" id="btn-after" onclick="toggleSource('after')">AFTER</button>
+                </div>
+            </div>
+
+            <!-- Volume Slider -->
+            <div class="volume-container">
+                <span>VOL</span>
+                <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="1" oninput="changeVolume(this.value)">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PLUGINS SECTION -->
+<section id="gear">
+    <div class="section-header">
+        <div>
+            <span class="sec-num">06 // ARSENAL</span>
+            <h2>Gear & Tools</h2>
+        </div>
+    </div>
+
+    <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap: 40px;">
+        
+        <!-- Effects Column -->
+        <div class="hover-card">
+            <div class="card-title">EFFECTS / PROCESSORS</div>
+            <div class="card-desc">
+                For mixing vocals and mastering songs.
+            </div>
+            <ul class="plugin-list">
+                <li>FabFilter Pro-Q 3</li>
+                <li>FabFilter Pro-L 2</li>
+                <li>FabFilter Saturn 2</li>
+                <li>Soundtoys Decapitator</li>
+                <li>Soundtoys EchoBoy</li>
+                <li>Valhalla VintageVerb</li>
+                <li>UADx LA-2A Collection</li>
+                <li>UADx Pultec EQ Collection</li>
+                <li>Soothe2 (Oeksound)</li>
+                <li>RC-20 Retro Color</li>
+                <li>Xfer OTT</li>
+                <li>Kickstart 2</li>
+                <li>Waves CLA-76</li>
+                <li>Waves Tune Real-Time</li>
+                <li>SSL Native Bus Comp 2</li>
+                <li>StandardCLIP</li>
+                <li>ShaperBox 3</li>
+                <li>Shadow Hills Mastering Comp</li>
+                <li>Tube-Tech CL 1B</li>
+                <li>Endless Smile</li>
+                <li style="color: var(--accent); border: none;">...and more</li>
+            </ul>
+        </div>
+
+        <!-- Instruments Column -->
+        <div class="hover-card">
+            <div class="card-title">SOUNDS / SYNTHS</div>
+            <div class="card-desc">
+                For sound libraries and synthesis.
+            </div>
+            <ul class="plugin-list">
+                <li>Xfer Serum 2</li>
+                <li>Spectrasonics Omnisphere</li>
+                <li>Spectrasonics Keyscape</li>
+                <li>Kontakt 8</li>
+                <li>Arturia V Collection (Jup-8)</li>
+                <li>Absynth 5</li>
+                <li>u-he Diva</li>
+                <li>LennarDigital Sylenth1</li>
+                <li>Reveal Sound Spire</li>
+                <li>Kilohearts Phase Plant</li>
+                <li>Synapse DUNE 3</li>
+                <li>Addictive Drums 2</li>
+                <li>BBC Symphony Orchestra</li>
+                <li>Spitfire LABS</li>
+                <li>Pianoteq 8</li>
+                <li>SubLab XL</li>
+                <li>KORG MS-20 V</li>
+                <li>Arturia Prophet-5 V</li>
+                <li>Vital Audio</li>
+                <li>KORG M1</li>
+                <li style="color: var(--accent); border: none;">...and more</li>
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<!-- FAQ SECTION -->
+<section id="faq">
+    <div class="section-header">
+        <div>
+            <span class="sec-num">07 // INFO</span>
+            <h2>FAQ</h2>
+        </div>
+    </div>
+    
+    <div class="faq-container">
+        <details>
+            <summary>How do I send my files for mixing/mastering?</summary>
+            <div class="faq-answer">
+                Please upload your stems (WAV 24bit/44.1kHz or higher) to Google Drive, Dropbox, or WeTransfer. Ensure all effects on the master bus are turned off before exporting unless they are creative effects essential to the sound.
+            </div>
+        </details>
+        
+        <details>
+            <summary>What is your typical turnaround time?</summary>
+            <div class="faq-answer">
+                For mastering, it usually takes 5 days max. For mixing and full production, it can take 1-2 weeks depending on the complexity of the project and current workload. Rush delivery is available for an extra fee.
+            </div>
+        </details>
+        
+        <details>
+            <summary>Do you offer revisions?</summary>
+            <div class="faq-answer">
+                Yes, I want you to be 100% happy with the result. Mixing and Production packages include up to 3 major revisions. Mastering includes 2 revisions. Additional revisions can be discussed.
+            </div>
+        </details>
+        
+        <details>
+            <summary>What payment methods do you accept?</summary>
+            <div class="faq-answer">
+                I accept Bank Transfer (BIBD/Baiduri) for local clients in Brunei. For international clients, I accept PayPal. A 50% deposit is required to start the project.
+            </div>
+        </details>
+    </div>
+</section>
+
+<!-- CONTACT DESIGN -->
+<section id="contact" class="contact-hero">
+    <h1 class="contact-title">
+        LET'S MAKE<br>
+        <span style="color: var(--accent);">MUSIC</span> TOGETHER
+    </h1>
+    
+    <a href="mailto:eveneofficialmusic@gmail.com" class="contact-cta">Get In Touch</a>
+
+    <div class="contact-socials">
+        <a href="https://www.instagram.com/adbitwav" target="_blank">Instagram</a>
+    </div>
+</section>
+
+<script>
+    // 1. SCROLL ANIMATION
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+    });
+
+    // 2. CAROUSEL LOGIC
+    function scrollCarousel(btn, amount) {
+        const wrapper = btn.closest('.carousel-wrapper');
+        const container = wrapper.querySelector('.track-carousel');
+        container.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+
+    // 3. MASTERING PLAYER LOGIC
+    const audioUnmastered = document.getElementById('audio-unmastered');
+    const audioMastered = document.getElementById('audio-mastered');
+    const playBtn = document.getElementById('play-toggle');
+    const progressBar = document.getElementById('progress-bar');
+    const btnBefore = document.getElementById('btn-before');
+    const btnAfter = document.getElementById('btn-after');
+    const songBtns = document.querySelectorAll('.song-btn');
+
+    // Define Songs Data
+    const songs = [
+        { name: "Pop/Vocal", unmastered: "path-to-song1-unmastered.mp3", mastered: "path-to-song1-mastered.mp3" },
+        { name: "EDM/Festival", unmastered: "path-to-song2-unmastered.mp3", mastered: "path-to-song2-mastered.mp3" },
+        { name: "Cinematic", unmastered: "path-to-song3-unmastered.mp3", mastered: "path-to-song3-mastered.mp3" }
+    ];
+    
+    let isPlaying = false;
+    let currentMode = 'before'; 
+
+    playBtn.addEventListener('click', () => {
+        if (!isPlaying) {
+            audioUnmastered.play();
+            audioMastered.play();
+            playBtn.textContent = '❚❚';
+            isPlaying = true;
+        } else {
+            audioUnmastered.pause();
+            audioMastered.pause();
+            playBtn.textContent = '▶';
+            isPlaying = false;
+        }
+    });
+
+    window.toggleSource = function(mode) {
+        currentMode = mode;
+        if (mode === 'before') {
+            audioUnmastered.muted = false;
+            audioMastered.muted = true;
+            btnBefore.classList.add('active');
+            btnAfter.classList.remove('active', 'active-mastered');
+        } else {
+            audioUnmastered.muted = true;
+            audioMastered.muted = false;
+            btnBefore.classList.remove('active');
+            btnAfter.classList.add('active', 'active-mastered');
+        }
+    }
+
+    window.changeVolume = function(val) {
+        audioUnmastered.volume = val;
+        audioMastered.volume = val;
+    }
+
+    window.changeTrack = function(index) {
+        const wasPlaying = isPlaying;
+        audioUnmastered.src = songs[index].unmastered;
+        audioMastered.src = songs[index].mastered;
+        audioUnmastered.currentTime = 0;
+        audioMastered.currentTime = 0;
+        songBtns.forEach(btn => btn.classList.remove('active-song'));
+        songBtns[index].classList.add('active-song');
+        if(wasPlaying) {
+            audioUnmastered.play();
+            audioMastered.play();
+        }
+    }
+
+    audioUnmastered.addEventListener('timeupdate', () => {
+        if(audioUnmastered.duration) {
+            const percent = (audioUnmastered.currentTime / audioUnmastered.duration) * 100;
+            progressBar.style.width = percent + '%';
+        }
+    });
+
+    audioUnmastered.addEventListener('ended', () => {
+        audioUnmastered.currentTime = 0;
+        audioMastered.currentTime = 0;
+        if(isPlaying) {
+            audioUnmastered.play();
+            audioMastered.play();
+        }
+    });
+
+    // 4. HAMBURGER MENU LOGIC
+    function toggleMenu() {
+        const menu = document.getElementById('overlayMenu');
+        menu.classList.toggle('active');
+    }
+
+    // 5. INTERACTIVE BACKGROUND (CANVAS + ORBS)
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    const orb1 = document.getElementById('orb1');
+    const orb2 = document.getElementById('orb2');
+
+    let particles = [];
+    const particleCount = 40;
+    const connectionDistance = 150;
+    let mouse = { x: null, y: null };
+
+    // Resize Canvas
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Mouse Move Listener
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.x;
+        mouse.y = e.y;
+
+        // Move Orbs (Parallax Effect)
+        const moveX = (e.x - window.innerWidth / 2) * 0.05;
+        const moveY = (e.y - window.innerHeight / 2) * 0.05;
+        
+        // Inverse movement for depth
+        orb1.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
+        orb2.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    });
+
+    // Particle Class
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.vx = (Math.random() - 0.5) * 0.5; // Slow velocity
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.size = Math.random() * 2 + 1;
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // Bounce off edges
+            if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        }
+
+        draw() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(this.x, this.y, this.size, this.size); // Draw squares for tech vibe
+        }
+    }
+
+    // Initialize Particles
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    // Animation Loop
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+
+            // Connect to Mouse
+            if (mouse.x != null) {
+                const dx = p.x - mouse.x;
+                const dy = p.y - mouse.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < connectionDistance) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(255, 77, 0, ${1 - distance / connectionDistance})`; // Orange fade
+                    ctx.lineWidth = 0.5;
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.stroke();
+                }
+            }
+        });
+
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+</script>
+
+</body>
+</html>
