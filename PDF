@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ADBIT - Promotional One Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg: #050505;
+        --card-bg: #111;
+        --text-main: #e0e0e0;
+        --text-dim: #888;
+        --accent: #ff4d00;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    body {
+        background-color: var(--bg);
+        color: var(--text-main);
+        font-family: 'Space Mono', monospace;
+        font-size: 11px;
+        width: 210mm; /* A4 Width */
+        height: 297mm; /* A4 Height */
+        margin: 0 auto;
+        padding: 10mm;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    h1 {
+        font-family: 'Syncopate', sans-serif;
+        font-size: 48px;
+        line-height: 0.8;
+        color: #fff;
+        text-transform: uppercase;
+    }
+
+    .tagline {
+        color: var(--accent);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: right;
+    }
+
+    /* GRID LAYOUT */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 30px;
+        flex-grow: 1;
+    }
+
+    h2 {
+        font-family: 'Syncopate', sans-serif;
+        font-size: 16px;
+        color: #fff;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+        margin-bottom: 15px;
+        margin-top: 20px;
+    }
+    h2:first-child { margin-top: 0; }
+
+    /* LEFT COLUMN (Profile & Clients) */
+    .profile-section p { margin-bottom: 10px; color: #ccc; line-height: 1.5; }
+    
+    .client-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .client-box {
+        border: 1px solid #333;
+        padding: 10px;
+        text-align: center;
+        background: var(--card-bg);
+    }
+    .c-name { color: #fff; font-weight: 700; font-size: 10px; }
+    .c-type { color: var(--accent); font-size: 8px; text-transform: uppercase; }
+
+    /* RIGHT COLUMN (Services) */
+    .service-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        border-bottom: 1px dotted #333;
+        padding-bottom: 10px;
+    }
+    .s-info strong { color: #fff; font-size: 14px; display: block; }
+    .s-info span { color: #888; font-size: 10px; }
+    .s-price { color: var(--accent); font-weight: 700; font-size: 16px; text-align: right; }
+    .s-sub { font-size: 9px; color: #666; display: block; }
+
+    /* FOOTER / CONTACT */
+    .footer {
+        background: var(--card-bg);
+        border: 1px solid var(--accent);
+        padding: 20px;
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .contact-big {
+        font-family: 'Syncopate', sans-serif;
+        font-size: 24px;
+        color: #fff;
+    }
+    .contact-details {
+        text-align: right;
+        line-height: 1.6;
+    }
+    .contact-details a { color: var(--text-main); text-decoration: none; }
+
+    /* GEAR LIST COMPACT */
+    .gear-list {
+        column-count: 2;
+        font-size: 9px;
+        color: #666;
+        margin-top: 10px;
+    }
+
+    /* PRINT HIDDEN */
+    @media print {
+        @page { margin: 0; size: A4; }
+        body { margin: 10mm; height: auto; }
+    }
+</style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>ADBIT</h1><br>
+            <div style="font-size: 10px; color: #666; letter-spacing: 4px;">PRODUCER / MIXING / MASTERING</div>
+        </div>
+        <div class="tagline">
+            EST. 2012<br>
+            BRUNEI DARUSSALAM
+        </div>
+    </header>
+
+    <div class="main-grid">
+        
+        <!-- LEFT COLUMN -->
+        <div class="left-col">
+            <h2>Profile</h2>
+            <div class="profile-section">
+                <p>13 years of experience in the Brunei music scene, expanding internationally to Malaysia and Singapore. Specializing in technical audio engineering fused with creative composition.</p>
+                <p style="color:var(--accent)">Genres: Pop, Progressive House, Future Bass, Scoring.</p>
+            </div>
+
+            <h2>Previous Clients</h2>
+            <div class="client-list">
+                <div class="client-box">
+                    <div class="c-name">EMRYS</div>
+                    <div class="c-type">Twitch Streamer</div>
+                </div>
+                <div class="client-box">
+                    <div class="c-name">Pelangi FM</div>
+                    <div class="c-type">Radio</div>
+                </div>
+                <div class="client-box">
+                    <div class="c-name">Waffurru</div>
+                    <div class="c-type">Artist</div>
+                </div>
+                <div class="client-box">
+                    <div class="c-name">6th System</div>
+                    <div class="c-type">Gaming</div>
+                </div>
+            </div>
+
+            <h2>Notable Works</h2>
+            <ul style="list-style: none; color: #aaa; line-height: 1.8;">
+                <li>+ <strong style="color:#fff">The Brotherhood</strong> (First EDM Album in Brunei)</li>
+                <li>+ <strong style="color:#fff">"Majal" Remix</strong> (15k+ Streams)</li>
+                <li>+ <strong style="color:#fff">Suasana Hari Raya</strong> (400k+ Views)</li>
+            </ul>
+
+            <h2>Top Tier Tools</h2>
+            <div class="gear-list">
+                FabFilter Pro-Q 3<br>
+                UADx Collection<br>
+                Soothe2<br>
+                Spectrasonics Omnisphere<br>
+                Xfer Serum<br>
+                Native Instruments<br>
+                Shadow Hills Mastering<br>
+                Tube-Tech CL 1B
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="right-col">
+            <h2>Services & Rates</h2>
+            
+            <div class="service-item">
+                <div class="s-info">
+                    <strong>MIX & MASTER</strong>
+                    <span>Complete release-ready delivery.</span>
+                    <br><i>*Best Value*</i>
+                </div>
+                <div class="s-price">
+                    BND 350
+                    <span class="s-sub">PER SONG</span>
+                </div>
+            </div>
+
+            <div class="service-item">
+                <div class="s-info">
+                    <strong>PRODUCTION</strong>
+                    <span>Custom beat, sound design & arrangement.</span>
+                </div>
+                <div class="s-price">
+                    BND 140
+                    <span class="s-sub">PER SONG</span>
+                </div>
+            </div>
+
+            <div class="service-item">
+                <div class="s-info">
+                    <strong>MIXING</strong>
+                    <span>Vocal clarity, depth & balance.</span>
+                </div>
+                <div class="s-price">
+                    BND 150
+                    <span class="s-sub">PER SONG</span>
+                </div>
+            </div>
+
+            <div class="service-item">
+                <div class="s-info">
+                    <strong>MASTERING</strong>
+                    <span>Loudness optimization for Spotify/Apple.</span>
+                </div>
+                <div class="s-price">
+                    BND 180
+                    <span class="s-sub">PER SONG</span>
+                </div>
+            </div>
+
+            <div class="service-item">
+                <div class="s-info">
+                    <strong>COMMERCIAL</strong>
+                    <span>Jingles, Scoring & Background Music.</span>
+                </div>
+                <div class="s-price">
+                    VARIES
+                    <span class="s-sub">BND 50 - 1000</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; border: 1px solid #333; padding: 15px; font-size: 10px; color: #888;">
+                <strong>PROCESS:</strong><br>
+                1. Send Demo/Stems<br>
+                2. Production/Mix Phase<br>
+                3. Revisions (Up to 3 included)<br>
+                4. Final Delivery (WAV/MP3)
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>
+            <div style="font-size: 10px; letter-spacing: 2px; color: var(--accent); margin-bottom: 5px;">READY TO WORK?</div>
+            <div class="contact-big">BOOK NOW</div>
+        </div>
+        <div class="contact-details">
+            <strong>Email:</strong> eveneofficialmusic@gmail.com<br>
+            <strong>Instagram:</strong> @adbitwav<br>
+            <strong>Web:</strong> adbit.com (Example)
+        </div>
+    </div>
+
+</body>
+</html>
