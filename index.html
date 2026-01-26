@@ -12,14 +12,14 @@
 <style>
     :root {
         --bg: #050505;
-        --card-bg: rgba(20, 20, 20, 0.4); /* Darker base state */
+        --card-bg: rgba(20, 20, 20, 0.4);
         --text-main: #e0e0e0;
         --text-dim: #888888;
         --accent: #ff4d00; /* Groshev Orange */
         --border: rgba(255, 255, 255, 0.08);
         --font-display: 'Anton', sans-serif;
         --font-tech: 'Space Mono', monospace;
-        --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth Glass Movement */
+        --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -222,10 +222,10 @@
 
     /* --- PROFILE --- */
     .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 40px; }
+    .profile-info-block { border-right: 1px solid var(--border); padding-right: 40px; }
     .profile-text p { font-size: 16px; margin-bottom: 20px; color: #ccc; }
 
     /* --- GLOBAL GLASS CARD STYLING --- */
-    /* This applies to Clients, Works, Gear cards */
     .glass-card {
         background: var(--card-bg);
         border: 1px solid var(--border);
@@ -236,22 +236,15 @@
         overflow: hidden;
     }
 
-    /* THE APPLE LIQUID HOVER EFFECT */
     .glass-card:hover {
-        /* Make background cleaner so liquid shows through */
         background: rgba(255, 255, 255, 0.03); 
-        /* Heavy blur and high saturation for lens effect */
         backdrop-filter: blur(30px) saturate(200%);
         -webkit-backdrop-filter: blur(30px) saturate(200%);
-        /* Brighten border */
         border-color: rgba(255, 255, 255, 0.2);
-        /* Add glow */
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
-        /* Slight lift */
         transform: translateY(-5px) scale(1.01);
     }
 
-    /* Add a subtle shine reflection on hover */
     .glass-card::before {
         content: '';
         position: absolute;
@@ -261,9 +254,7 @@
         transition: 0.5s;
         pointer-events: none;
     }
-    .glass-card:hover::before {
-        left: 100%;
-    }
+    .glass-card:hover::before { left: 100%; }
 
     /* --- CLIENTS (MARQUEE) --- */
     .clients-section {
@@ -422,20 +413,32 @@
     .glass-card:hover .plugin-list li { color: #fff; border-bottom-color: rgba(255,255,255,0.3); }
 
     /* --- DAW SPECIFIC STYLES --- */
+    /* By default (Desktop), grid uses 1fr 1fr from inline style or class */
+    .gear-grid-desktop {
+        display: grid;
+        grid-template-columns: 1fr 1fr; 
+        gap: 40px;
+    }
+
     .daw-highlight {
         grid-column: span 2;
-        /* Keep subtle accent tint */
         background: radial-gradient(circle at top right, rgba(255,77,0,0.1), rgba(20,20,20,0.4) 70%);
         border-color: rgba(255,77,0,0.3);
     }
     
     .daw-highlight .card-title { font-size: 24px; color: var(--accent); }
+    
+    /* Secondary DAWs (Desktop view inside own card) */
     .secondary-daws { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
     .daw-tag { 
         padding: 5px 12px; border: 1px solid #333; font-size: 11px; color: #888; 
         border-radius: 20px; transition: 0.3s; background: rgba(0,0,0,0.3);
     }
     .glass-card:hover .daw-tag { border-color: #555; color: #fff; background: rgba(255,255,255,0.1); }
+
+    /* Mobile Only Content (Hidden by default on PC) */
+    .mobile-daws-content { display: none; }
+    .desktop-daws-card { display: flex; }
 
     /* --- CONTACT --- */
     .contact-hero {
@@ -455,16 +458,66 @@
     .contact-socials a { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
     .contact-socials a:hover { color: var(--accent); }
 
-    /* --- MOBILE --- */
-    @media (max-width: 900px) {
-        .alias-block { grid-template-columns: 1fr; gap: 20px; }
+    /* --- TABLET & MOBILE OPTIMIZATIONS (Max Width 1024px) --- */
+    @media (max-width: 1024px) {
+        /* General */
+        section { padding: 100px 20px 40px; }
+        
+        /* Hero */
         .hero h1 { font-size: 16vw; }
         .hero-sub { grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        /* Profile Section */
+        .profile-grid { 
+            grid-template-columns: 1fr; /* Stack vertically */
+            gap: 30px; 
+        }
+        .profile-info-block {
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+            padding-right: 0;
+            padding-bottom: 30px;
+        }
+        
+        /* Aliases */
+        .alias-block { grid-template-columns: 1fr; gap: 20px; }
+        
+        /* Gear Section Layout Changes */
+        .gear-grid-desktop {
+            grid-template-columns: 1fr; /* 1 Column for mobile */
+            gap: 20px;
+        }
+        
+        /* FL Studio Card (Top) */
+        .daw-highlight {
+            grid-column: span 1; /* Reset span */
+            order: -1; /* Ensure it's on top */
+        }
+        
+        /* Insert Other DAWs into FL Card for Mobile */
+        .mobile-daws-content {
+            display: block; /* Show on mobile */
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .mobile-daw-title {
+            color: #fff; font-family: var(--font-display); font-size: 16px; margin-bottom: 10px;
+        }
+        
+        /* Hide Standalone Desktop Card */
+        .desktop-daws-card { display: none !important; }
+        
+        /* Achievements */
+        .hover-card .card-title { font-size: 16px; } /* Smaller font for phones */
+        
+        /* Contact */
         .contact-title { font-size: 14vw; }
         .contact-socials { gap: 20px; flex-wrap: wrap; justify-content: center; }
+        
+        /* Grid Containers */
         .grid-container { grid-template-columns: 1fr; }
         .plugin-list { column-count: 1; }
-        .daw-highlight { grid-column: auto; }
     }
 </style>
 </head>
@@ -474,7 +527,6 @@
 <svg style="display: none;">
     <defs>
         <filter id="liquid-filter">
-            <!-- Low frequency creates smooth liquid waves -->
             <feTurbulence type="fractalNoise" baseFrequency="0.006" numOctaves="4" result="warp" />
             <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="50" in="SourceGraphic" in2="warp" />
         </filter>
@@ -531,7 +583,7 @@
         </div>
     </div>
     <div class="profile-grid">
-        <div style="border-right: 1px solid var(--border); padding-right: 40px;">
+        <div class="profile-info-block">
             <h3 style="font-size: 24px; text-transform: uppercase; color: #fff; margin-bottom: 20px;">
                 Since 2012.
             </h3>
@@ -556,62 +608,59 @@
     <div class="section-header" style="padding-left: 40px;">
         <div>
             <span class="sec-num">01.5 // PORTFOLIO</span>
-            <h2>Selected Clients</h2>
+            <h2>As Heard On</h2>
         </div>
     </div>
     <!-- Infinite Loop Container -->
     <div class="clients-scroll-container">
         <!-- FIRST SET OF CLIENTS (Glass Cards) -->
         <div class="client-card glass-card">
-            <div class="c-name">Warner Music Group</div>
+            <div class="c-name">Warner Music Group Level Music</div>
             <div class="c-type">Label</div>
         </div>
         <div class="client-card glass-card">
-            <div class="c-name">Royal Brunei Airlines</div>
+            <div class="c-name">Royal Brunei Airlines FVGHT CLVB</div>
             <div class="c-type">Commercial</div>
         </div>
         <div class="client-card glass-card">
-            <div class="c-name">Progresif Media</div>
-            <div class="c-type">Media</div>
+            <div class="c-name">Local EDM Progresif Media</div>
+            <div class="c-type">Radio & Media</div>
+        </div>
+        <div class="client-card glass-card">
+            <div class="c-name">Pelangi FM</div>
+            <div class="c-type">Radio</div>
         </div>
         <div class="client-card glass-card">
             <div class="c-name">Kristal FM</div>
             <div class="c-type">Radio</div>
         </div>
         <div class="client-card glass-card">
-            <div class="c-name">The Brotherhood</div>
-            <div class="c-type">Artist</div>
+            <div class="c-name">KYSB, The Brotherhood</div>
+            <div class="c-type">Radio</div>
         </div>
         <div class="client-card glass-card">
             <div class="c-name">SWANZ & ASMAI</div>
             <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card glass-card">
+            <div class="c-name">AIENKI</div>
+            <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card glass-card">
+            <div class="c-name">WAFFURU</div>
+            <div class="c-type">Artist</div>
+        </div>
+        <div class="client-card glass-card">
+            <div class="c-name">EMRYS</div>
+            <div class="c-type">Twitch Streamer</div>
+        </div>
+        <div class="client-card glass-card">
+            <div class="c-name">6th System</div>
+            <div class="c-type">Gaming Company</div>
         </div>
 
         <!-- DUPLICATE SET -->
-        <div class="client-card glass-card">
-            <div class="c-name">Warner Music Group</div>
-            <div class="c-type">Label</div>
-        </div>
-        <div class="client-card glass-card">
-            <div class="c-name">Royal Brunei Airlines</div>
-            <div class="c-type">Commercial</div>
-        </div>
-        <div class="client-card glass-card">
-            <div class="c-name">Progresif Media</div>
-            <div class="c-type">Media</div>
-        </div>
-        <div class="client-card glass-card">
-            <div class="c-name">Kristal FM</div>
-            <div class="c-type">Radio</div>
-        </div>
-        <div class="client-card glass-card">
-            <div class="c-name">The Brotherhood</div>
-            <div class="c-type">Artist</div>
-        </div>
-        <div class="client-card glass-card">
-            <div class="c-name">SWANZ & ASMAI</div>
-            <div class="c-type">Artist</div>
-        </div>
+
     </div>
 </section>
 
@@ -864,7 +913,7 @@
     </div>
 </section>
 
-<!-- GEAR & TOOLS SECTION -->
+<!-- GEAR & TOOLS SECTION (RESPONSIVE) -->
 <section id="gear">
     <div class="section-header">
         <div>
@@ -873,19 +922,32 @@
         </div>
     </div>
 
-    <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap: 40px;">
+    <!-- Use explicit class for Grid to allow Mobile Override -->
+    <div class="gear-grid-desktop">
         
-        <!-- MAIN DAW (Wide) -->
+        <!-- MAIN DAW (Wide) - WITH MOBILE CONTENT EMBEDDED -->
         <div class="hover-card daw-highlight glass-card">
             <div class="card-title">FL STUDIO</div>
             <div class="card-desc">
                 Primary Workstation. Expert Level Workflow.
                 <br>Used for 90% of all productions, sound design, and arrangements.
             </div>
+            
+            <!-- MOBILE ONLY CONTENT (Hidden on PC) -->
+            <div class="mobile-daws-content">
+                <div class="mobile-daw-title">OTHER DAWS</div>
+                <div class="secondary-daws">
+                    <span class="daw-tag">Ableton Live</span>
+                    <span class="daw-tag">Studio One</span>
+                    <span class="daw-tag">Logic Pro</span>
+                    <span class="daw-tag">Cubase</span>
+                    <span class="daw-tag">Pro Tools</span>
+                </div>
+            </div>
         </div>
 
-        <!-- OTHER DAWS -->
-        <div class="hover-card glass-card">
+        <!-- OTHER DAWS (DESKTOP ONLY CARD) -->
+        <div class="hover-card glass-card desktop-daws-card">
             <div class="card-title">OTHER DAWS</div>
             <div class="card-desc">
                 Proficient in other industry standard environments.
@@ -965,7 +1027,7 @@
         <span style="color: var(--accent);">MUSIC</span> TOGETHER
     </h1>
     
-    <a href="mailto:eveneofficialmusic@gmail.com" class="contact-cta">Get In Touch</a>
+    <a href="mailto:adbitwav@gmail.com" class="contact-cta">Get In Touch</a>
 
     <div class="contact-socials">
         <a href="https://www.instagram.com/adbitwav" target="_blank">Instagram</a>
